@@ -77,6 +77,7 @@ export enum DMPErrors {
     INVALID_PLAYLIST = 'InvalidPlaylist',
     INVALID_SPOTIFY = 'InvalidSpotify',
     INVALID_APPLE = 'InvalidApple',
+    FILE_NOT_FOUND = 'FileNotFound',
     UNKNOWN_SONG = 'UnknownSong'
 }
 
@@ -109,11 +110,12 @@ export const DMPErrorMessages = {
     UnknownRepeatMode: 'The provided RepeatMode was not valid.',
     ResourceNotReady: 'The AudioResource was not ready.',
     InvalidGuild: 'The provided Guild was invalid.',
-    SearchIsNull: 'The was no YouTube song found by that query.',
-    InvalidSpotify: 'The was no Spotify song found with that link.',
+    SearchIsNull: 'There was no YouTube song found by that query.',
+    InvalidSpotify: 'There was no Spotify song found with that link.',
     InvalidPlaylist: 'There was no Playlist found with that link.',
     InvalidApple: 'There was no Apple music song with that link',
-    UnknownSong: 'There is no song found by that index.'
+    UnknownSong: 'There is no song found by that index.',
+    FileNotFound: 'There was no File found with that path.'
 }
 
 export { DMPError };

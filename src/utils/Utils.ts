@@ -9,6 +9,8 @@ import YTSR, { Video } from 'ytsr';
 import {getData, getPreview } from "spotify-url-info";
 import { getSong, getPlaylist } from "./AppleUtils";
 import {Client, Video as IVideo, VideoCompact, Playlist as IPlaylist} from "youtubei";
+import * as fs from "fs";
+import * as mm from 'music-metadata';
 let YouTube = new Client();
 
 export class Utils {
@@ -204,6 +206,31 @@ export class Utils {
     }
 
     /**
+     * Search for a song via file path
+     * @param {string} Search
+     * @param {PlayOptions} SOptions
+     * @param {Queue} Queue
+     * @return {Promise<Song>}
+     */
+    static async file(Search: string, SOptions: PlayOptions = DefaultPlayOptions, Queue: Queue) {
+        if (!fs.existsSync(Search)) throw DMPErrors.FILE_NOT_FOUND;
+
+        try {
+            const metadata = await mm.parseFile(Search, {duration: true});
+            return new Song({
+                name: metadata.common.title != null ? metadata.common.title : Search,
+                url: Search,
+                duration: this.msToTime((metadata.format.duration ?? 0) * 1000),
+                author: metadata.common.artist != null ? metadata.common.artist : 'Unknown',
+                isLive: false,
+                thumbnail: ""
+            } as RawSong, Queue, SOptions.requestedBy);
+        } catch (e) {
+            throw DMPErrors.FILE_NOT_FOUND;
+        }
+    }
+
+    /**
      * Gets the best result of a Search
      * @param {Song|string} Search
      * @param {PlayOptions} SOptions
@@ -213,7 +240,7 @@ export class Utils {
     static async best(Search: Song|string, SOptions: PlayOptions = DefaultPlayOptions, Queue: Queue): Promise<Song> {
         let _Song;
 
-        if(Search instanceof Song)
+        if (Search instanceof Song)
             return Search as Song;
 
         _Song = await this.link(
@@ -221,10 +248,16 @@ export class Utils {
             SOptions,
             Queue
         ).catch(error => {
-            if(!(error instanceof TypeError)){
+            if (!(error instanceof TypeError)) {
                 throw DMPErrors.UNKNOWN //Ignore typeError
             }
         });
+
+        if (!_Song && fs.existsSync(Search)) _Song = (await this.file(
+            Search,
+            SOptions,
+            Queue
+        ));
 
         if(!_Song)
             _Song = (await this.search(
