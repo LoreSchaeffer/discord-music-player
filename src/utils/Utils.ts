@@ -223,7 +223,9 @@ export class Utils {
                 duration: this.msToTime((metadata.format.duration ?? 0) * 1000),
                 author: metadata.common.artist != null ? metadata.common.artist : 'Unknown',
                 isLive: false,
-                thumbnail: ""
+                thumbnail: "",
+                seekTime: 0,
+                file: true
             } as RawSong, Queue, SOptions.requestedBy);
         } catch (e) {
             throw DMPErrors.FILE_NOT_FOUND;

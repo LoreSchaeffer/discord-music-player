@@ -155,6 +155,7 @@ export interface RawSong {
     duration: string,
     isLive: boolean
     seekTime?: number;
+    file?: boolean;
 }
 
 /**

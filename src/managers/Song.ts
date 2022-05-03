@@ -13,6 +13,7 @@ export class Song {
     public isLive: boolean;
     public isFirst: boolean;
     public seekTime: number;
+    public file: boolean;
     public data?: any = null;
 
     /**
@@ -93,6 +94,12 @@ export class Song {
          */
 
         /**
+         * If this is a file
+         * @name Song#file
+         * @type {boolean}
+         */
+
+        /**
          * Song custom data
          * @name Song#data
          * @type {any}
@@ -119,6 +126,8 @@ export class Song {
         this.isFirst = false;
 
         this.seekTime = raw.seekTime ?? 0;
+
+        this.file = raw.file ?? false;
 
         this.data = null;
     }

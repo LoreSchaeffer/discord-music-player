@@ -1,10 +1,31 @@
-import {Guild, GuildChannelResolvable, Snowflake, StageChannel, VoiceChannel} from "discord.js";
+import {Guild, GuildChannelResolvable, StageChannel, VoiceChannel} from "discord.js";
 import {StreamConnection} from "../voice/StreamConnection";
-import {AudioResource,
+import {
+    AudioResource,
     createAudioResource,
-    DiscordGatewayAdapterCreator, entersState, joinVoiceChannel, StreamType, VoiceConnectionStatus } from "@discordjs/voice";
+    entersState,
+    joinVoiceChannel,
+    StreamType,
+    VoiceConnectionStatus
+} from "@discordjs/voice";
 import ytdl from "discord-ytdl-core";
-import { Playlist, Song, Player, Utils, DefaultPlayerOptions, PlayerOptions, PlayOptions, PlaylistOptions, RepeatMode, ProgressBarOptions, ProgressBar, DMPError, DMPErrors, DefaultPlayOptions, DefaultPlaylistOptions } from "..";
+import {
+    DefaultPlayerOptions,
+    DefaultPlaylistOptions,
+    DefaultPlayOptions,
+    DMPError,
+    DMPErrors,
+    Player,
+    PlayerOptions,
+    Playlist,
+    PlaylistOptions,
+    PlayOptions,
+    ProgressBar,
+    ProgressBarOptions,
+    RepeatMode,
+    Song,
+    Utils
+} from "..";
 
 export class Queue {
     public player: Player;
@@ -218,26 +239,36 @@ export class Queue {
         if(song.seekTime)
             options.seek = song.seekTime;
 
-        let stream = ytdl(song.url, {
-            requestOptions: this.player.options.ytdlRequestOptions ?? {},
-            opusEncoded: false,
-            seek: options.seek ? options.seek / 1000 : 0,
-            fmt: 's16le',
-            encoderArgs: [],
-            quality: quality!.toLowerCase() === 'low' ? 'lowestaudio' : 'highestaudio',
-            highWaterMark: 1 << 25,
-            filter: 'audioonly'
-        })
-            .on('error', (error: { message: string; }) => {
-                if(!/Status code|premature close/i.test(error.message))
-                    this.player.emit('error', error.message === 'Video unavailable' ? 'VideoUnavailable' : error.message, this);
-               return;
-            });
 
-        const resource: AudioResource<Song> = this.connection.createAudioStream(stream, {
-           metadata: song,
-           inputType: StreamType.Raw
-        });
+        let resource: AudioResource<Song>;
+
+        if (song.file) {
+            resource = createAudioResource(song.url, {
+                metadata: song,
+                inputType: StreamType.Opus
+            });
+        } else {
+            let stream = ytdl(song.url, {
+                requestOptions: this.player.options.ytdlRequestOptions ?? {},
+                opusEncoded: false,
+                seek: options.seek ? options.seek / 1000 : 0,
+                fmt: 's16le',
+                encoderArgs: [],
+                quality: quality!.toLowerCase() === 'low' ? 'lowestaudio' : 'highestaudio',
+                highWaterMark: 1 << 25,
+                filter: 'audioonly'
+            })
+                .on('error', (error: { message: string; }) => {
+                    if (!/Status code|premature close/i.test(error.message))
+                        this.player.emit('error', error.message === 'Video unavailable' ? 'VideoUnavailable' : error.message, this);
+                    return;
+                });
+
+            resource = this.connection.createAudioStream(stream, {
+                metadata: song,
+                inputType: StreamType.Raw
+            });
+        }
 
         setTimeout(_ => {
             this.connection!.playAudioStream(resource)
